@@ -1,4 +1,5 @@
 import Order from "../models/Order.js";
+import OrderStatus from "../models/OrderStatus.js";
 import User from "../models/User.js";
 
 class OrderController {
@@ -15,7 +16,6 @@ class OrderController {
                 data = { user_point: user.point };
             }
             res.status(201).json({
-                status: 201,
                 message: "Tạo đơn hàng thành công",
                 data,
             });
@@ -26,7 +26,10 @@ class OrderController {
 
     // [GET] /orders
     async getAll(req, res, next) {
+        const { sortCondition, pagination } = req.filter;
         const { userId } = req.user;
+        const { status } = req.query;
+
         if (!userId)
             return res.status(401).json({ error: "Người dùng không tồn tại" });
         try {
