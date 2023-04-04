@@ -1,0 +1,33 @@
+{
+    "name": "search-book-app-server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon --inspect src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Ngoc Hung",
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.20.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "jsonwebtoken": "^9.0.0",
+        "mailgen": "^2.0.27",
+        "method-override": "^3.0.0",
+        "mongoose": "^6.9.2",
+        "mongoose-delete": "^0.5.4",
+        "mongoose-sequence": "^5.3.1",
+        "mongoose-slug-generator": "^1.0.4",
+        "multer": "^1.4.5-lts.1",
+        "nodemailer": "^6.9.1",
+        "otp-generator": "^4.0.1"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.21"
+    }
+}
