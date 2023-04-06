@@ -14,6 +14,7 @@ const User = new Schema(
         avatar: { type: String, default: "" },
         point: { type: Number, default: 0 },
         role: { type: String, default: "user" },
+        favorite: [{ type: Schema.Types.ObjectId, ref: "Book" }],
         refreshToken: { type: String, default: "" },
     },
     { timestamps: true, collection: "users" }

@@ -1,6 +1,7 @@
 import Order from "../models/Order.js";
 import OrderStatus from "../models/OrderStatus.js";
 import User from "../models/User.js";
+import Book from "../models/Book.js";
 
 class OrderController {
     // [POST] /orders/status
@@ -34,10 +35,30 @@ class OrderController {
 
     // [POST] /orders
     async create(req, res, next) {
+        let isOverStock;
+        for (let i = 0; i < req.body.orderItems.length; i++) {
+            const book = await Book.findById(req.body.orderItems[i].id);
+            if (book.in_stock < req.body.orderItems[i].quantity) {
+                isOverStock = true;
+                break;
+            }
+        }
+
+        if (isOverStock)
+            return res.status(400).json({
+                error: "Không thể tạo đơn hàng vì không đủ số lượng cung cấp.",
+            });
+
         try {
             const order = new Order(req.body);
             order.status = 2;
             await order.save();
+
+            order.orderItems.forEach(async (item) => {
+                const book = await Book.findById(item.id);
+                book.in_stock -= item.quantity;
+                await book.save();
+            });
 
             const user = await User.findOne({ _id: req.body.userId });
 
@@ -46,7 +67,7 @@ class OrderController {
                 await user.save();
             }
 
-            const pointFromOrder = (order.itemsPrice * 10) / 100000;
+            const pointFromOrder = Math.floor((order.itemsPrice * 10) / 100000);
             user.point += pointFromOrder;
             await user.save();
             const data = { user_point: user.point };

@@ -22,6 +22,9 @@ router.post("/logout", UserController.logout);
 router.post("/login", UserController.login);
 router.post("/refresh", UserController.refreshToken);
 
+router.delete("/favorite/:bookId", Auth, UserController.deleteFavorite);
+router.post("/favorite", Auth, UserController.addFavorite);
+router.get("/favorite", Auth, UserController.getFavorite);
 router.get("/:email", UserController.getUser);
 
 router.post("/", UserController.create);

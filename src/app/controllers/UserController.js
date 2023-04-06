@@ -3,6 +3,7 @@ import otpGenerator from "otp-generator";
 import nodemailer from "nodemailer";
 import Mailgen from "mailgen";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import User from "../models/User.js";
 import {
@@ -119,6 +120,7 @@ class UserController {
                         address: user.address,
                         avatar: user.avatar,
                         point: user.point,
+                        favorite: user.favorite,
                         accessToken,
                         refreshToken,
                     };
@@ -309,6 +311,97 @@ class UserController {
             status: 200,
             message: "Bạn vừa nhận được một email từ chúng tôi",
         });
+    }
+
+    // [GET] /users/favorite
+    async getFavorite(req, res, next) {
+        const { userId } = req.user;
+
+        if (!userId) {
+            return res
+                .status(403)
+                .json({ error: "Không thể xác thực người dùng này." });
+        }
+
+        try {
+            const { favorite } = await User.findOne({ _id: userId })
+                .populate("favorite")
+                .select("favorite -_id");
+
+            res.status(200).json({ data: favorite });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // [POST] /users/favorite
+    async addFavorite(req, res, next) {
+        const { userId } = req.user;
+        const { bookId } = req.body;
+
+        if (!userId) {
+            return res
+                .status(403)
+                .json({ error: "Không thể xác thực người dùng này." });
+        }
+
+        try {
+            const user = await User.findOne({ _id: userId });
+            const existingFavoriteBook = user.favorite.find((item) =>
+                item.equals(bookId)
+            );
+
+            if (existingFavoriteBook)
+                return res.status(400).json({
+                    error: "Sản phẩm này đã tồn tại trong danh sách yêu thích của bạn",
+                });
+
+            user.favorite.push(mongoose.Types.ObjectId(bookId));
+            await user.save();
+
+            res.status(201).json({
+                message: "Bạn vừa thêm 1 sản phẩm vào danh sách yêu thích",
+                data: user.favorite,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // [DELETE] /users/favorite/:bookId
+    async deleteFavorite(req, res, next) {
+        const { userId } = req.user;
+        const { bookId } = req.params;
+
+        if (!userId) {
+            return res
+                .status(403)
+                .json({ error: "Không thể xác thực người dùng này." });
+        }
+
+        try {
+            const user = await User.findOne({ _id: userId });
+            const existingFavoriteBook = user.favorite.find((item) =>
+                item.equals(bookId)
+            );
+
+            if (!existingFavoriteBook)
+                return res.status(400).json({
+                    error: "Sản phẩm này không có trong danh sách yêu thích của bạn",
+                });
+
+            user.favorite = user.favorite.filter(
+                (item) => !item.equals(bookId)
+            );
+            await user.save();
+
+            res.status(200).json({
+                message: "Bạn vừa xóa 1 sản phẩm khỏi danh sách yêu thích",
+                data: user.favorite,
+            });
+        } catch (error) {
+            next(error);
+        }
     }
 }
 
