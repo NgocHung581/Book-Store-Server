@@ -3,13 +3,10 @@ function Filter(req, res, next) {
         sortBy = "createdAt",
         type = "desc",
         page = 1,
-        limit = 2,
+        limit = 12,
     } = req.query;
 
-    let sortCondition = {};
-    if (sortBy && type && type !== "null") {
-        sortCondition = { [sortBy]: type };
-    }
+    const sortCondition = { [sortBy]: type };
 
     const skippedItem = (parseInt(page) - 1) * parseInt(limit);
     const pagination = {

@@ -8,6 +8,7 @@ const Order = new Schema(
     {
         orderItems: [
             {
+                _id: false,
                 name: { type: String, required: true },
                 image: { type: String, required: true },
                 price: { type: Number, required: true },
@@ -35,7 +36,7 @@ const Order = new Schema(
         paidAt: { type: Date },
         isDelivered: { type: Boolean, default: false },
         deliveredAt: { type: Date },
-        status: { type: String, default: "Pending" },
+        status: { type: Number, ref: "OrderStatus" },
         date: { type: String, required: true },
     },
     { timestamps: true, collection: "orders" }
