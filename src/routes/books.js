@@ -3,12 +3,14 @@ import express from "express";
 import UploadFile from "../app/middlewares/UploadFile.js";
 import BookController from "../app/controllers/BookController.js";
 import Filter from "../app/middlewares/Filter.js";
+import Auth from "../app/middlewares/Auth.js";
 
 const router = express.Router();
 
 router.get("/category/:slug", Filter, BookController.getSpecificCategory);
-router.get("/feature", BookController.getAllWithCondition);
+router.get("/feature", BookController.getFeature);
 router.get("/search", Filter, BookController.search);
+router.post("/rating", Auth, BookController.rating);
 
 router.get("/:slug", BookController.get);
 router.put("/:id", BookController.update);

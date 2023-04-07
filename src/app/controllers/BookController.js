@@ -1,4 +1,6 @@
 import Book from "../models/Book.js";
+import Review from "../models/Review.js";
+import User from "../models/User.js";
 
 class BookController {
     // [GET] /books?page=...&limit=...
@@ -34,14 +36,14 @@ class BookController {
     }
 
     // [GET] /books/feature?type=...&limit=...
-    async getAllWithCondition(req, res, next) {
+    async getFeature(req, res, next) {
         try {
             let condition;
             let limit;
 
             switch (req.query.type) {
                 case "rating":
-                    condition = { rating: { $gte: 4 } };
+                    condition = { totalRating: { $gte: 4 } };
                     limit = req.query.limit;
                     break;
                 case "slider":
@@ -58,7 +60,7 @@ class BookController {
             }
 
             const books = await Book.find(condition).limit(limit);
-            res.json({ status: 200, data: books });
+            res.status(200).json({ data: books });
         } catch (error) {
             next(error);
         }
@@ -68,7 +70,7 @@ class BookController {
     async get(req, res, next) {
         try {
             const book = await Book.findOne({ slug: req.params.slug });
-            res.json(book);
+            res.status(200).json({ data: book });
         } catch (error) {
             next(error);
         }
@@ -165,8 +167,7 @@ class BookController {
 
             const response = await book.save();
 
-            res.json({
-                status: 200,
+            res.status(200).json({
                 message: "Bạn đã thêm thành công",
                 data: response,
             });
@@ -183,8 +184,7 @@ class BookController {
                 req.body
             );
 
-            res.json({
-                status: 200,
+            res.status(200).json({
                 message: "Bạn đã chỉnh sửa thành công",
                 data: response,
             });
@@ -198,7 +198,43 @@ class BookController {
         try {
             await Book.findOneAndDelete({ _id: req.params.id });
 
-            res.json({ status: 200, message: "Bạn đã xóa thành công" });
+            res.status(200).json({ message: "Bạn đã xóa thành công" });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // [POST] /books/rating
+    async rating(req, res, next) {
+        const { userId } = req.user;
+        const { bookId, star } = req.body;
+
+        if (!userId)
+            return res
+                .status(403)
+                .json({ error: "Không thể xác thực người dùng này" });
+
+        try {
+            const book = await Book.findByIdAndUpdate(
+                bookId,
+                {
+                    $push: { rating: { star, userId } },
+                },
+                { returnDocument: "after" }
+            );
+
+            const totalStar = book.rating.reduce(
+                (total, item) => total + item.star,
+                0
+            );
+            const ratingLength = book.rating.length;
+            book.totalRating = Math.round(totalStar / ratingLength);
+            await book.save();
+
+            res.status(201).json({
+                message: "Đánh giá thành công",
+                data: book,
+            });
         } catch (error) {
             next(error);
         }

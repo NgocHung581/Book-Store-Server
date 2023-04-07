@@ -15,7 +15,13 @@ const Book = new Schema(
             id: { type: String, required: true },
             slug: { type: String, required: true },
         },
-        rating: { type: Number, default: 0 },
+        rating: [
+            {
+                star: { type: Number },
+                userId: { type: Schema.Types.ObjectId, ref: "User" },
+            },
+        ],
+        totalRating: { type: Number, default: 0 },
         slider: { type: Boolean, default: false },
         count_sell: { type: Number, default: 0 },
         in_stock: { type: Number, required: true },
