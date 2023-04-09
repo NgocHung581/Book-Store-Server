@@ -203,42 +203,6 @@ class BookController {
             next(error);
         }
     }
-
-    // [POST] /books/rating
-    async rating(req, res, next) {
-        const { userId } = req.user;
-        const { bookId, star } = req.body;
-
-        if (!userId)
-            return res
-                .status(403)
-                .json({ error: "Không thể xác thực người dùng này" });
-
-        try {
-            const book = await Book.findByIdAndUpdate(
-                bookId,
-                {
-                    $push: { rating: { star, userId } },
-                },
-                { returnDocument: "after" }
-            );
-
-            const totalStar = book.rating.reduce(
-                (total, item) => total + item.star,
-                0
-            );
-            const ratingLength = book.rating.length;
-            book.totalRating = Math.round(totalStar / ratingLength);
-            await book.save();
-
-            res.status(201).json({
-                message: "Đánh giá thành công",
-                data: book,
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
 }
 
 export default new BookController();

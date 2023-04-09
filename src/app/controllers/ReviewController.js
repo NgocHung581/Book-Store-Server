@@ -1,5 +1,5 @@
+import Book from "../models/Book.js";
 import Review from "../models/Review.js";
-import User from "../models/User.js";
 
 class ReviewController {
     // [GET] /reviews/:bookId
@@ -20,7 +20,7 @@ class ReviewController {
     // [POST] /reviews
     async create(req, res, next) {
         const { userId } = req.user;
-        const { reviews } = req.body;
+        const { bookId, star, content } = req.body;
 
         if (!userId)
             return res
@@ -28,25 +28,33 @@ class ReviewController {
                 .json({ error: "Không thể xác thực người dùng này" });
 
         try {
-            reviews.forEach(async (review) => {
-                const newReview = new Review({
-                    content: review.content,
-                    bookId: review.bookId,
-                    postedBy: userId,
-                });
-                await newReview.save();
-            });
+            // Rating Book
+            const book = await Book.findByIdAndUpdate(
+                bookId,
+                {
+                    $push: { rating: { star, userId } },
+                },
+                { returnDocument: "after" }
+            );
 
-            const pointFromReview = reviews.length * 5;
-            const user = await User.findById(userId);
-            user.point += pointFromReview;
-            await user.save();
+            const totalStar = book.rating.reduce(
+                (total, item) => total + item.star,
+                0
+            );
+            const ratingLength = book.rating.length;
+            book.totalRating = Math.round(totalStar / ratingLength);
+            await book.save();
+
+            // Review
+            const newReview = new Review({
+                content,
+                bookId,
+                postedBy: userId,
+            });
+            await newReview.save();
 
             res.status(201).json({
-                message: `Đánh giá thành công. Bạn vừa nhận thêm ${pointFromReview} điểm tích lũy`,
-                data: {
-                    user_point: user.point,
-                },
+                message: `Đánh giá thành công.`,
             });
         } catch (error) {
             next(error);

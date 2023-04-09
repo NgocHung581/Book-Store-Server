@@ -57,6 +57,7 @@ class OrderController {
             order.orderItems.forEach(async (item) => {
                 const book = await Book.findById(item.id);
                 book.in_stock -= item.quantity;
+                book.count_sell += item.quantity;
                 await book.save();
             });
 
