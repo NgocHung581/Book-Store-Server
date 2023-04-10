@@ -7,15 +7,10 @@ const Review = new Schema(
     {
         content: { type: String, required: true },
         bookId: { type: Schema.Types.ObjectId, ref: "Book" },
+        rating: { type: Number, required: true },
         postedBy: { type: Schema.Types.ObjectId, ref: "User" },
-        like: {
-            users: [{ type: Schema.Types.ObjectId, ref: "User" }],
-            total: { type: Number, min: 0, default: 0 },
-        },
-        dislike: {
-            users: [{ type: Schema.Types.ObjectId, ref: "User" }],
-            total: { type: Number, min: 0, default: 0 },
-        },
+        like: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        dislike: [{ type: Schema.Types.ObjectId, ref: "User" }],
     },
     { timestamps: true, collection: "reviews" }
 );

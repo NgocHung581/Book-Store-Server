@@ -6,6 +6,5 @@ import Auth from "../app/middlewares/Auth.js";
 const router = express.Router();
 
 router.post("/", Auth, ReviewController.create);
-router.get("/:bookId", ReviewController.getAll);
 
 export default router;

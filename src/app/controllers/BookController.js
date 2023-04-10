@@ -76,6 +76,24 @@ class BookController {
         }
     }
 
+    // [GET] /books/:slug/reviews
+    async getReviews(req, res, next) {
+        try {
+            const book = await Book.findOne({ slug: req.params.slug })
+                .populate({
+                    path: "reviews",
+                    populate: {
+                        path: "postedBy",
+                        select: "avatar fullName",
+                    },
+                })
+                .select("reviews totalRating");
+            res.status(200).json({ data: book });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     // [GET] /books/category/:slug?page=...&limit=...&sortBy=[field]&type=[asc | desc]
     async getSpecificCategory(req, res, next) {
         const {
@@ -196,7 +214,7 @@ class BookController {
     // [DELETE] /books/:id
     async delete(req, res, next) {
         try {
-            await Book.findOneAndDelete({ _id: req.params.id });
+            await Book.findOne({ _id: req.params.id });
 
             res.status(200).json({ message: "Bạn đã xóa thành công" });
         } catch (error) {
