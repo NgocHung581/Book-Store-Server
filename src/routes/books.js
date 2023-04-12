@@ -10,7 +10,7 @@ router.get("/category/:slug", Filter, BookController.getSpecificCategory);
 router.get("/feature", BookController.getFeature);
 router.get("/search", Filter, BookController.search);
 
-router.get("/:slug/reviews", BookController.getReviews);
+router.get("/:slug/reviews", Filter, BookController.getReviews);
 
 router.get("/:slug", BookController.get);
 router.put("/:id", BookController.update);

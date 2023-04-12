@@ -69,7 +69,10 @@ class BookController {
     // [GET] /books/:slug
     async get(req, res, next) {
         try {
-            const book = await Book.findOne({ slug: req.params.slug });
+            const book = await Book.findOne({ slug: req.params.slug }).populate(
+                "reviews",
+                "rating"
+            );
             res.status(200).json({ data: book });
         } catch (error) {
             next(error);
@@ -78,6 +81,33 @@ class BookController {
 
     // [GET] /books/:slug/reviews
     async getReviews(req, res, next) {
+        const {
+            pagination: { skippedItem, limit, page },
+        } = req.filter;
+
+        let ratingCondition = {};
+
+        const star = parseInt(req.query.star);
+        if (star && star > 0 && star < 6) {
+            ratingCondition = { rating: star };
+        }
+
+        let totalItem;
+        let totalPages;
+        Book.findOne({ slug: req.params.slug })
+            .populate({
+                path: "reviews",
+                select: "rating",
+                match: ratingCondition,
+            })
+            .select("reviews")
+            .exec(function (err, book) {
+                if (err) return res.json({ err });
+
+                totalItem = book.reviews.length;
+                totalPages = Math.ceil(totalItem / parseInt(limit));
+            });
+
         try {
             const book = await Book.findOne({ slug: req.params.slug })
                 .populate({
@@ -86,9 +116,23 @@ class BookController {
                         path: "postedBy",
                         select: "avatar fullName",
                     },
+                    match: ratingCondition,
+                    options: {
+                        sort: { createdAt: "desc" },
+                        skip: skippedItem,
+                        limit,
+                    },
                 })
-                .select("reviews totalRating");
-            res.status(200).json({ data: book });
+                .select("reviews");
+
+            res.status(200).json({
+                data: {
+                    results: book.reviews,
+                    page,
+                    total_pages: totalPages,
+                    total_results: totalItem,
+                },
+            });
         } catch (error) {
             next(error);
         }

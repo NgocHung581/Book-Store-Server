@@ -11,8 +11,8 @@ function Filter(req, res, next) {
     const skippedItem = (parseInt(page) - 1) * parseInt(limit);
     const pagination = {
         skippedItem,
-        limit,
-        page,
+        limit: parseInt(limit),
+        page: parseInt(page),
     };
 
     req.filter = { sortCondition, pagination };
