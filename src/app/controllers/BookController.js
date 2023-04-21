@@ -2,6 +2,8 @@ import Book from "../models/Book.js";
 import Review from "../models/Review.js";
 import User from "../models/User.js";
 
+import calculatePercentRating from "../../utils/calculatePercentRating.js";
+
 class BookController {
     // [GET] /books?page=...&limit=...
     async getAll(req, res, next) {
@@ -68,12 +70,56 @@ class BookController {
 
     // [GET] /books/:slug
     async get(req, res, next) {
+        let totalReviews;
+
+        Book.findOne({ slug: req.params.slug })
+            .populate({
+                path: "reviews",
+                select: "rating",
+            })
+            .select("reviews")
+            .exec(function (err, book) {
+                if (err) return res.json({ err });
+
+                totalReviews = book.reviews.length;
+            });
+
         try {
             const book = await Book.findOne({ slug: req.params.slug }).populate(
                 "reviews",
                 "rating"
             );
-            res.status(200).json({ data: book });
+
+            const reviews = [
+                {
+                    label: "5 sao",
+                    value: calculatePercentRating(book.reviews, 5),
+                },
+                {
+                    label: "4 sao",
+                    value: calculatePercentRating(book.reviews, 4),
+                },
+                {
+                    label: "3 sao",
+                    value: calculatePercentRating(book.reviews, 3),
+                },
+                {
+                    label: "2 sao",
+                    value: calculatePercentRating(book.reviews, 2),
+                },
+                {
+                    label: "1 sao",
+                    value: calculatePercentRating(book.reviews, 1),
+                },
+            ];
+
+            res.status(200).json({
+                data: {
+                    ...book._doc,
+                    reviews,
+                    totalReviews,
+                },
+            });
         } catch (error) {
             next(error);
         }

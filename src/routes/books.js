@@ -12,7 +12,7 @@ router.get("/search", Filter, BookController.search);
 
 router.get("/:slug/reviews", Filter, BookController.getReviews);
 
-router.get("/:slug", BookController.get);
+router.get("/:slug", Filter, BookController.get);
 router.put("/:id", BookController.update);
 router.delete("/:id", BookController.delete);
 
