@@ -1,4 +1,6 @@
 const calculatePercentRating = (reviewsArray, rating) => {
+    if (reviewsArray.length <= 0) return 0;
+
     const reviewsLength = reviewsArray.length;
     const ratingFilterLength = reviewsArray.filter(
         (review) => review.rating === rating
