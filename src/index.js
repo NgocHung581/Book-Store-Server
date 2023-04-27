@@ -5,6 +5,7 @@ import cors from "cors";
 import { fileURLToPath } from "url";
 import path from "path";
 import * as dotenv from "dotenv";
+import { Server } from "socket.io";
 
 import { connectDB } from "./config/db/index.js";
 import route from "./routes/index.js";
@@ -36,6 +37,13 @@ app.use(methodOverride("_method"));
 // Routes init
 route(app);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`App listening on port ${port}`);
+});
+
+export const io = new Server(server, {
+    pingTimeout: 60000,
+    cors: {
+        origin: "http://localhost:3000",
+    },
 });

@@ -1,28 +1,29 @@
 import axios from "axios";
 
+import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { db } from "../../config/firebase.js";
 import fetchResults from "../../utils/fetchResults.js";
 import Search from "../models/Search.js";
 
 class AmazonSearchController {
     // [POST] /amazon/search
     async onScraperComplete(req, res) {
-        const { success, id } = req.body;
+        const { success, id, finished } = req.body;
 
         if (!success) {
-            await Search.findOneAndUpdate(
-                { id },
-                { status: "error" },
-                { returnDocument: "after" }
-            );
+            await updateDoc(doc(db, "searches", id), {
+                status: "error",
+                updatedAt: finished,
+            });
         }
 
         const data = await fetchResults(id);
 
-        await Search.findOneAndUpdate(
-            { id },
-            { status: "complete", results: data },
-            { returnDocument: "after" }
-        );
+        await updateDoc(doc(db, "searches", id), {
+            status: "complete",
+            results: data,
+            updatedAt: finished,
+        });
 
         res.json({ message: "Scraping Function Finished" });
     }
@@ -43,14 +44,26 @@ class AmazonSearchController {
                 }
             );
             const { collection_id, start_eta } = response.data;
-            const newSearch = new Search({
-                id: collection_id,
+
+            await setDoc(doc(db, "searches", collection_id), {
                 search,
                 start_eta,
                 status: "pending",
             });
-            await newSearch.save();
+
             return res.status(200).json({ collection_id, start_eta });
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    // [GET] /amazon/search/results/:id
+    async getResults(req, res) {
+        try {
+            const { id } = req.params;
+            const results = await Search.findOne({ id });
+
+            return res.status(200).json({ data: results });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }

@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post("/onScraperComplete", AmazonSearchController.onScraperComplete);
 router.post("/search", AmazonSearchController.search);
+router.get("/search/results/:id", AmazonSearchController.getResults);
 
 export default router;

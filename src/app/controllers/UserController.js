@@ -57,6 +57,7 @@ class UserController {
         try {
             if (userId) {
                 await User.findOneAndUpdate({ _id: userId }, req.body);
+
                 res.json({
                     status: 201,
                     message: "Cập nhật thành công",
