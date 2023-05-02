@@ -105,7 +105,6 @@ class UserController {
                     const data = {
                         userId: user._id,
                         email: user.email,
-                        role: user.role,
                     };
                     const accessToken = generateAccessToken(data);
                     const refreshToken = generateRefreshToken(data);
@@ -122,6 +121,7 @@ class UserController {
                         avatar: user.avatar,
                         point: user.point,
                         favorite: user.favorite,
+                        role: user.role,
                         accessToken,
                         refreshToken,
                     };

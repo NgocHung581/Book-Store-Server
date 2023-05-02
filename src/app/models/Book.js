@@ -12,7 +12,7 @@ const Book = new Schema(
         author: { type: String, required: true },
         price: { type: Number, required: true },
         category: {
-            id: { type: String, required: true },
+            id: { type: String, required: true, ref: "Category" },
             slug: { type: String, required: true },
         },
         reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
