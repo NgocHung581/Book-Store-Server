@@ -1,6 +1,4 @@
 import Book from "../models/Book.js";
-import Review from "../models/Review.js";
-import User from "../models/User.js";
 
 import calculatePercentRating from "../../utils/calculatePercentRating.js";
 
@@ -21,6 +19,7 @@ class BookController {
         });
         try {
             const books = await Book.find({})
+                .populate("category.id", "name")
                 .sort(sortCondition)
                 .skip(skippedItem)
                 .limit(limit);
@@ -286,15 +285,15 @@ class BookController {
 
     // [PUT] /books/:id
     async update(req, res, next) {
+        if (req.file?.filename) {
+            req.body.image = req.file.filename;
+        }
+
         try {
-            const response = await Book.findOneAndUpdate(
-                { _id: req.params.id },
-                req.body
-            );
+            await Book.findOneAndUpdate({ _id: req.params.id }, req.body);
 
             res.status(200).json({
                 message: "Bạn đã chỉnh sửa thành công",
-                data: response,
             });
         } catch (error) {
             next(error);
@@ -304,7 +303,7 @@ class BookController {
     // [DELETE] /books/:id
     async delete(req, res, next) {
         try {
-            await Book.findOne({ _id: req.params.id });
+            await Book.findOneAndDelete({ _id: req.params.id });
 
             res.status(200).json({ message: "Bạn đã xóa thành công" });
         } catch (error) {

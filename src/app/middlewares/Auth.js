@@ -9,7 +9,6 @@ async function Auth(req, res, next) {
         next();
     } catch (error) {
         res.status(401).json({
-            status: 401,
             error: "Hết phiên đăng nhập. Vui lòng đăng nhập lại!",
         });
     }
