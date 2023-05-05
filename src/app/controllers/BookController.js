@@ -15,7 +15,7 @@ class BookController {
             if (error) return res.json({ error });
 
             totalItem = count;
-            totalPages = Math.ceil(count / parseInt(limit));
+            totalPages = Math.ceil(count / limit);
         });
         try {
             const books = await Book.find({})
@@ -26,7 +26,7 @@ class BookController {
             res.status(200).json({
                 data: {
                     results: books,
-                    page: parseInt(page),
+                    page,
                     total_pages: totalPages,
                     total_results: totalItem,
                 },
@@ -235,7 +235,7 @@ class BookController {
         let totalPages;
         Book.countDocuments(
             {
-                name: { $regex: "^" + req.query.q, $options: "i" },
+                name: { $regex: req.query.q, $options: "i" },
             },
             function (error, count) {
                 if (error) return res.json({ error });
@@ -247,7 +247,7 @@ class BookController {
 
         try {
             const books = await Book.find({
-                name: { $regex: "^" + req.query.q, $options: "i" },
+                name: { $regex: req.query.q, $options: "i" },
             })
                 .sort(sortCondition)
                 .skip(skippedItem)
