@@ -1,4 +1,5 @@
 import Category from "../models/Category.js";
+import Book from "../models/Book.js";
 
 class CategoryController {
     // [GET] /categories
@@ -76,8 +77,21 @@ class CategoryController {
 
     // [DELETE] /categories/:id
     async delete(req, res, next) {
+        const { id } = req.params;
+
         try {
-            await Category.findOneAndDelete({ _id: req.params.id });
+            const books = await Book.find({});
+
+            const isExistingBookInCategory = books.find(
+                (book) => book.category.id === id
+            );
+
+            if (isExistingBookInCategory)
+                return res.status(400).json({
+                    error: "Không thể xóa vì vẫn còn sản phẩm trong danh mục",
+                });
+
+            await Category.findOneAndDelete({ _id: id });
 
             res.status(200).json({ message: "Bạn đã xóa thành công" });
         } catch (error) {
