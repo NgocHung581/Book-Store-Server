@@ -5,6 +5,47 @@ import Book from "../models/Book.js";
 
 class OrderController {
     // [POST] /orders/status
+    async getAllByAdmin(req, res, next) {
+        const { status } = req.query;
+
+        let findCondition = {};
+
+        if (status && parseInt(status) !== 1) {
+            findCondition = { status: parseInt(status) };
+        }
+
+        const {
+            pagination: { skippedItem, limit, page },
+        } = req.filter;
+        let totalItem;
+        let totalPages;
+        Order.countDocuments(findCondition, function (error, count) {
+            if (error) return res.json({ error });
+
+            totalItem = count;
+            totalPages = Math.ceil(count / limit);
+        });
+
+        try {
+            const orders = await Order.find(findCondition)
+                .populate("status", "label")
+                .skip(skippedItem)
+                .limit(limit);
+
+            res.status(200).json({
+                data: {
+                    results: orders,
+                    page,
+                    total_pages: totalPages,
+                    total_results: totalItem,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // [POST] /orders/status
     async createOrderStatus(req, res, next) {
         try {
             const status = new OrderStatus(req.body);
@@ -17,6 +58,7 @@ class OrderController {
             next(error);
         }
     }
+
     // [GET] /orders/status
     async getAllOrderStatus(req, res, next) {
         try {
@@ -151,7 +193,7 @@ class OrderController {
             const { id } = req.params;
             const order = await Order.findByIdAndUpdate(
                 id,
-                { status },
+                { status: parseInt(status) },
                 { returnDocument: "after" }
             ).populate("status", "label");
             res.status(200).json({
