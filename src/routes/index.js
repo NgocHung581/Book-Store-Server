@@ -3,6 +3,7 @@ import reviewRouter from "./reviews.js";
 import categoryRouter from "./categories.js";
 import userRouter from "./users.js";
 import orderRouter from "./orders.js";
+import chatRouter from "./chats.js";
 import amazonSearchRouter from "./amazon-searchs.js";
 
 const route = (app) => {
@@ -15,6 +16,8 @@ const route = (app) => {
     app.use("/api/users", userRouter);
 
     app.use("/api/orders", orderRouter);
+
+    app.use("/api/chats", chatRouter);
 
     app.use("/api/amazon", amazonSearchRouter);
 };
