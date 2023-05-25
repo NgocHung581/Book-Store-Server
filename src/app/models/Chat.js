@@ -5,6 +5,7 @@ const Chat = new Schema(
     {
         _id: { type: mongoose.Schema.Types.ObjectId },
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
         latestMessage: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Message",

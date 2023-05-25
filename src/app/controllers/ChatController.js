@@ -1,5 +1,6 @@
 import Chat from "../models/Chat.js";
 import Message from "../models/Message.js";
+import User from "../models/User.js";
 
 class ChatController {
     // [GET] /chats
@@ -7,7 +8,13 @@ class ChatController {
         try {
             const chats = await Chat.find({})
                 .populate("user", "fullName avatar")
-                .populate("latestMessage");
+                .populate({
+                    path: "latestMessage",
+                    populate: {
+                        path: "sender",
+                        select: "fullName role",
+                    },
+                });
             res.status(200).json({ data: chats });
         } catch (error) {
             res.status(400).json({ error: error.message });
@@ -18,7 +25,9 @@ class ChatController {
     async createChat(req, res, next) {
         const { userId } = req.user;
 
-        await Chat.create({ _id: userId, user: userId });
+        const admins = await User.find({ role: "admin" }).select("_id");
+
+        await Chat.create({ _id: userId, user: userId, admins });
         res.status(201).json({
             message: "Bạn vừa tạo thành công cuộc trò chuyện với admin",
         });
@@ -34,7 +43,9 @@ class ChatController {
             if (chat) {
                 const messages = await Message.find({
                     chat: chat?._id,
-                }).populate("sender", "fullName avatar");
+                })
+                    .populate("sender", "fullName avatar role")
+                    .populate("chat", "user admins");
                 res.status(200).json({ data: messages });
             } else {
                 res.status(200).json({ data: chat });
@@ -62,7 +73,10 @@ class ChatController {
                 { returnDocument: "after" }
             );
 
-            res.status(200).json({ data: newMessage });
+            const data = await Message.findById(newMessage._id)
+                .populate("sender", "fullName avatar role")
+                .populate("chat", "user admins");
+            res.status(200).json({ data });
         } catch (error) {
             res.status(400).json({ error: error.message });
         }

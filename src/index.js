@@ -41,9 +41,33 @@ const server = app.listen(port, () => {
     console.log(`App listening on port ${port}`);
 });
 
-export const io = new Server(server, {
-    pingTimeout: 60000,
+const io = new Server(server, {
     cors: {
         origin: "http://localhost:3000",
     },
+});
+
+io.on("connection", (socket) => {
+    console.log("Connected to socket");
+
+    socket.on("setup", (userId) => {
+        console.log("User:", userId);
+        socket.join(userId);
+    });
+
+    socket.on("new message", (newMessageReceived) => {
+        console.log(newMessageReceived);
+
+        newMessageReceived.chat.admins.forEach((admin) => {
+            socket.in(admin).emit("message received", newMessageReceived);
+        });
+
+        socket
+            .in(newMessageReceived.chat.user)
+            .emit("message received", newMessageReceived);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Disconnect to socket");
+    });
 });

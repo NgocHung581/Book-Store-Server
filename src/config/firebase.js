@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDF6d7ku7vDMSl-YyaM6SwnWG9SO90m3aY",
-    authDomain: "search-web-91850.firebaseapp.com",
-    projectId: "search-web-91850",
-    storageBucket: "search-web-91850.appspot.com",
-    messagingSenderId: "628629172734",
-    appId: "1:628629172734:web:1cc0a2758aa953e7ae90af",
+    apiKey: "AIzaSyCIgZP_8vORp2apNKO974QLmSydZv9SOss",
+    authDomain: "search-70d32.firebaseapp.com",
+    projectId: "search-70d32",
+    storageBucket: "search-70d32.appspot.com",
+    messagingSenderId: "251605583408",
+    appId: "1:251605583408:web:3a966052dfefecb32ecff5",
 };
 
 const app = initializeApp(firebaseConfig);
