@@ -2,6 +2,7 @@ import Order from "../models/Order.js";
 import OrderStatus from "../models/OrderStatus.js";
 import User from "../models/User.js";
 import Book from "../models/Book.js";
+import Cart from "../models/Cart.js";
 
 class OrderController {
     // [POST] /orders/status
@@ -29,6 +30,7 @@ class OrderController {
         try {
             const orders = await Order.find(findCondition)
                 .populate("status", "label")
+                .populate("orderItems.book", "name price image slug")
                 .skip(skippedItem)
                 .limit(limit);
 
@@ -77,10 +79,12 @@ class OrderController {
 
     // [POST] /orders
     async create(req, res, next) {
+        const { userId } = req.user;
+
         let isOverStock;
         for (let i = 0; i < req.body.orderItems.length; i++) {
-            const book = await Book.findById(req.body.orderItems[i].id);
-            if (book.in_stock < req.body.orderItems[i].quantity) {
+            const foundBook = await Book.findById(req.body.orderItems[i].book);
+            if (foundBook.in_stock < req.body.orderItems[i].quantity) {
                 isOverStock = true;
                 break;
             }
@@ -92,32 +96,25 @@ class OrderController {
             });
 
         try {
+            // Create Order
             const order = new Order(req.body);
             order.status = 2;
             await order.save();
 
             order.orderItems.forEach(async (item) => {
-                const book = await Book.findById(item.id);
-                book.in_stock -= item.quantity;
-                book.count_sell += item.quantity;
-                await book.save();
+                const foundBook = await Book.findById(item.book);
+                foundBook.in_stock -= item.quantity;
+                foundBook.count_sell += item.quantity;
+                await foundBook.save();
+
+                await Cart.findOneAndDelete(
+                    { user: userId, book: item.book },
+                    { returnDocument: "after" }
+                );
             });
 
-            const user = await User.findOne({ _id: req.body.userId });
-
-            if (req.body.discount > 0) {
-                user.point = 0;
-                await user.save();
-            }
-
-            const pointFromOrder = Math.floor((order.itemsPrice * 10) / 100000);
-            user.point += pointFromOrder;
-            await user.save();
-            const data = { user_point: user.point };
-
             res.status(201).json({
-                message: `Tạo đơn hàng thành công. Bạn vừa được nhận thêm ${pointFromOrder} điểm`,
-                data,
+                message: `Tạo đơn hàng thành công.`,
             });
         } catch (error) {
             next(error);
@@ -153,6 +150,7 @@ class OrderController {
 
             const orders = await Order.find(findCondition)
                 .populate("status", "label")
+                .populate("orderItems.book", "name price image slug")
                 .sort(sortCondition)
                 .skip(skippedItem)
                 .limit(limit);
@@ -176,7 +174,9 @@ class OrderController {
             return res.status(401).json({ error: "Người dùng không tồn tại" });
         try {
             const { id } = req.params;
-            const order = await Order.findById(id).populate("status", "label");
+            const order = await Order.findById(id)
+                .populate("status", "label")
+                .populate("orderItems.book", "name price image slug");
             res.status(200).json({ data: order });
         } catch (error) {
             next(error);
@@ -195,7 +195,35 @@ class OrderController {
                 id,
                 { status: parseInt(status) },
                 { returnDocument: "after" }
-            ).populate("status", "label");
+            )
+                .populate("status", "label")
+                .populate("orderItems.book", "name price image slug");
+
+            // Calculate point for user
+            if (parseInt(status) === 5) {
+                let point;
+                const user = await User.findOne({ _id: userId });
+
+                if (order.discount > 0) {
+                    user.point = 0;
+                    await user.save();
+                }
+
+                const pointFromOrder = Math.floor(
+                    (order.itemsPrice * 10) / 100000
+                );
+                user.point += pointFromOrder;
+                await user.save();
+                point = user.point;
+
+                res.status(200).json({
+                    message: `Bạn vừa nhận được ${point} điểm`,
+                    data: order,
+                    point,
+                });
+                return;
+            }
+
             res.status(200).json({
                 message: "Bạn vừa cập nhật đơn hàng thành công",
                 data: order,

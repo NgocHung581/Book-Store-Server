@@ -8,14 +8,9 @@ const Order = new Schema(
     {
         orderItems: [
             {
-                _id: false,
-                name: { type: String, required: true },
-                image: { type: String, required: true },
-                price: { type: Number, required: true },
                 quantity: { type: Number, required: true },
-                slug: { type: String, required: true },
-                id: {
-                    type: Schema.Types.ObjectId,
+                book: {
+                    type: String,
                     ref: "Book",
                     required: true,
                 },
