@@ -4,7 +4,7 @@ async function connectDB() {
     try {
         mongoose.set("strictQuery", false);
         await mongoose.connect(
-            "mongodb+srv://huynhngochung12092001:NgocHungne1209@cluster0.edn3dcd.mongodb.net/?retryWrites=true&w=majority"
+            "mongodb+srv://huynhngochung12092001:NgocHungne1209@cluster0.edn3dcd.mongodb.net/book_store?retryWrites=true&w=majority"
         );
         console.log("Database connected successfully");
     } catch (error) {
