@@ -22,7 +22,14 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+            "http://localhost:3000/",
+            "https://book-store-wf6c.onrender.com/",
+        ],
+    })
+);
 
 app.use(
     bodyParser.urlencoded({
