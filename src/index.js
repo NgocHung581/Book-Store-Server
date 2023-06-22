@@ -26,7 +26,7 @@ app.use(
     cors({
         origin: [
             "http://localhost:3000/",
-            "https://book-store-wf6c.onrender.com/",
+            "https://book-store-wf6c.onrender.com",
         ],
     })
 );
